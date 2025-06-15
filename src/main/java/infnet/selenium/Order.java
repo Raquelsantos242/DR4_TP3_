@@ -4,26 +4,53 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Order {
-    public String clientName;
-    public String clientEmail;
-    public List<String> products = new ArrayList<>();
-    public List<Integer> quantities = new ArrayList<>();
-    public List<Double> prices = new ArrayList<>();
-    public double discountRate = 0.1;
+    private String clientName;
+    private String clientEmail;
+    private final List<Item> items = new ArrayList<>();
+    private double discountRate = 0.1;
+
+    public void addItem(Item item) {
+        items.add(item);
+    }
 
     public void printInvoice() {
-        double total = 0;
+        double subtotal = calculateSubtotal();
+
         System.out.println("Cliente: " + clientName);
-        for (int i = 0; i < products.size(); i++) {
-            System.out.println(quantities.get(i) + "x " + products.get(i) + " - R$" + prices.get(i));
-            total += prices.get(i) * quantities.get(i);
+        for (Item item : items) {
+            System.out.println(item.getQuantity() + "x " + item.getProduct()
+                    + " - R$" + item.getPrice());
         }
-        System.out.println("Subtotal: R$" + total);
-        System.out.println("Desconto: R$" + (total * discountRate));
-        System.out.println("Total final: R$" + (total * (1 - discountRate)));
+        System.out.println("Subtotal: R$" + subtotal);
+        System.out.println("Desconto: R$" + (subtotal * discountRate));
+        System.out.println("Total final: R$" + (subtotal * (1 - discountRate)));
+    }
+
+    private double calculateSubtotal() {
+        double total = 0;
+        for (Item item : items) {
+            total += item.getTotalPrice();
+        }
+        return total;
     }
 
     public void sendEmail() {
-        EmailService.sendEmail(clientEmail, "Pedido recebido! Obrigado pela compra.");
+        // Encapsulamento da dependência externa
+        String subject = "Pedido recebido!";
+        String body = "Obrigado pela compra.";
+        sendEmailInternal(subject, body);
     }
+
+    private void sendEmailInternal(String subject, String body) {
+        // Lógica de envio encapsulada
+        System.out.println("Enviando e-mail para " + clientEmail +
+                "\nAssunto: " + subject +
+                "\nCorpo: " + body);
+    }
+
+    // Getters e Setters
+    public String getClientName() { return clientName; }
+    public void setClientName(String clientName) { this.clientName = clientName; }
+    public String getClientEmail() { return clientEmail; }
+    public void setClientEmail(String clientEmail) { this.clientEmail = clientEmail; }
 }
