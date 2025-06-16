@@ -2,55 +2,62 @@ package infnet.selenium;
 
 import java.util.ArrayList;
 import java.util.List;
-
 class Order {
-    private String clientName;
-    private String clientEmail;
+    private final Client client;
     private final List<Item> items = new ArrayList<>();
-    private double discountRate = 0.1;
+    private final double discountRate = 0.1;
+
+    public Order(Client client) {
+        this.client = client;
+    }
 
     public void addItem(Item item) {
         items.add(item);
     }
 
-    public void printInvoice() {
-        double subtotal = calculateSubtotal();
-
-        System.out.println("Cliente: " + clientName);
-        for (Item item : items) {
-            System.out.println(item.getQuantity() + "x " + item.getProduct()
-                    + " - R$" + item.getPrice());
-        }
-        System.out.println("Subtotal: R$" + subtotal);
-        System.out.println("Desconto: R$" + (subtotal * discountRate));
-        System.out.println("Total final: R$" + (subtotal * (1 - discountRate)));
+    private double calculateSubtotal() {
+        return items.stream()
+                .mapToDouble(Item::getTotalPrice)
+                .sum();
     }
 
-    private double calculateSubtotal() {
-        double total = 0;
-        for (Item item : items) {
-            total += item.getTotalPrice();
-        }
-        return total;
+    private double calculateDiscount(double subtotal) {
+        return subtotal * discountRate;
+    }
+
+    private double calculateTotal(double subtotal, double discount) {
+        return subtotal - discount;
+    }
+
+    private void printHeader() {
+        System.out.println("Cliente: " + client.getName());
+    }
+
+    private void printItems() {
+        items.forEach(item ->
+                System.out.println(item.getQuantity() + "x " +
+                        item.getProduct() + " - R$" +
+                        item.getPrice()));
+    }
+
+    private void printSummary(double subtotal, double discount, double total) {
+        System.out.println("Subtotal: R$" + subtotal);
+        System.out.println("Desconto: R$" + discount);
+        System.out.println("Total final: R$" + total);
+    }
+
+    public void printInvoice() {
+        printHeader();
+        printItems();
+
+        double subtotal = calculateSubtotal();
+        double discount = calculateDiscount(subtotal);
+        double total = calculateTotal(subtotal, discount);
+
+        printSummary(subtotal, discount, total);
     }
 
     public void sendEmail() {
-        // Encapsulamento da dependência externa
-        String subject = "Pedido recebido!";
-        String body = "Obrigado pela compra.";
-        sendEmailInternal(subject, body);
+        EmailService.sendConfirmation(client.getEmail());
     }
-
-    private void sendEmailInternal(String subject, String body) {
-        // Lógica de envio encapsulada
-        System.out.println("Enviando e-mail para " + clientEmail +
-                "\nAssunto: " + subject +
-                "\nCorpo: " + body);
-    }
-
-    // Getters e Setters
-    public String getClientName() { return clientName; }
-    public void setClientName(String clientName) { this.clientName = clientName; }
-    public String getClientEmail() { return clientEmail; }
-    public void setClientEmail(String clientEmail) { this.clientEmail = clientEmail; }
 }

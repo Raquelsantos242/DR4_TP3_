@@ -1,7 +1,7 @@
 package infnet.selenium;
 
 class EmailService {
-    public static void sendEmail(String to, String message) {
-        System.out.println("Enviando e-mail para " + to + ": " + message);
+    public static void sendConfirmation(String email) {
+        System.out.println("Enviando confirmação para: " + email);
     }
 }
